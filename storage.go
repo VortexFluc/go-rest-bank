@@ -9,7 +9,7 @@ type Storage interface {
 	CreateAccount(*Account) error
 	DeleteAccount(int) error
 	UpdateAccount(*Account) error
-	GetAccountByID(int) (*Account, error)
+	GetAccountById(int) (*Account, error)
 }
 
 type PostgresStore struct {

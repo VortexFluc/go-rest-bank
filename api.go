@@ -20,7 +20,7 @@ func NewAPIServer(listenAddr string, store Storage) *APIServer {
 	}
 }
 
-func (s *APIServer) Run() {
+func (s *APIServer) Run() error {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleAccount))
@@ -28,7 +28,12 @@ func (s *APIServer) Run() {
 
 	log.Println("JSON API server running on port: ", s.listenAddr)
 
-	http.ListenAndServe(s.listenAddr, router)
+	err := http.ListenAndServe(s.listenAddr, router)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request) error {
@@ -56,7 +61,17 @@ func (s *APIServer) handleGetAccount(w http.ResponseWriter, r *http.Request) err
 }
 
 func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) error {
-	return nil
+	createAccountReq := CreateAccountRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&createAccountReq); err != nil {
+		return err
+	}
+
+	account := NewAccount(createAccountReq.firstName, createAccountReq.lastName)
+	if err := s.store.CreateAccount(account); err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, account)
 }
 
 func (s *APIServer) handleDeleteAccount(w http.ResponseWriter, r *http.Request) error {

@@ -5,15 +5,19 @@ import (
 )
 
 func main() {
-	store, err := NewPostgresStore()
-	if err != nil {
-		log.Fatal(err)
+	store, storeErr := NewPostgresStore()
+	if storeErr != nil {
+		log.Fatal(storeErr)
 	}
 
 	if err := store.Init(); err != nil {
 		log.Fatal(err)
 	}
-	//server := NewAPIServer(":8008", store)
-	//server.Run()
+
+	server := NewAPIServer(":8008", store)
+	runErr := server.Run()
+	if runErr != nil {
+		log.Fatal(runErr)
+	}
 
 }
