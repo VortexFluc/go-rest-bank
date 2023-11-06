@@ -166,7 +166,6 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	return json.NewEncoder(w).Encode(v)
 }
 
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBY2NvdW50TnVtYmVyIjozOTcwMjUsIkV4cGlyZXNBdCI6MTUwMDB9.96mn-FbR6YgNkabesImsECRiDE19wNeK6Pme2j7LRbY
 func createJWT(a *Account) (string, error) {
 	// Create the Claims
 	claims := &jwt.MapClaims{
