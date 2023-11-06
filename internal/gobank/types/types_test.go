@@ -1,15 +1,12 @@
-package main
+package types
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestNewAccount(t *testing.T) {
-	acc, err := NewAccount("test", "test", "test")
+	_, err := NewAccount("test", "test", "test")
 
 	assert.Nil(t, err)
-
-	fmt.Printf("%+v\n", acc)
 }

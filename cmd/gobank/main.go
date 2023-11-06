@@ -3,11 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/vortexfluc/gobank/internal/gobank/api"
+	"github.com/vortexfluc/gobank/internal/gobank/storage"
+	"github.com/vortexfluc/gobank/internal/gobank/types"
 	"log"
 )
 
-func seedAccount(store Storage, fname, lname, pw string) *Account {
-	acc, err := NewAccount(fname, lname, pw)
+func seedAccount(store storage.Storage, fname, lname, pw string) *types.Account {
+	acc, err := types.NewAccount(fname, lname, pw)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -20,7 +23,7 @@ func seedAccount(store Storage, fname, lname, pw string) *Account {
 	return acc
 }
 
-func seedAccounts(s Storage) {
+func seedAccounts(s storage.Storage) {
 	seedAccount(s, "andrey", "v", "123456")
 }
 
@@ -28,7 +31,7 @@ func main() {
 	seed := flag.Bool("seed", false, "seed the db")
 	flag.Parse()
 
-	store, storeErr := NewPostgresStore()
+	store, storeErr := storage.NewPostgresStore()
 	if storeErr != nil {
 		log.Fatal(storeErr)
 	}
@@ -43,7 +46,7 @@ func main() {
 		seedAccounts(store)
 	}
 
-	server := NewAPIServer(":8008", store)
+	server := api.NewAPIServer(":8008", store)
 	runErr := server.Run()
 	if runErr != nil {
 		log.Fatal(runErr)
