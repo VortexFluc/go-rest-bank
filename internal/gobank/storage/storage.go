@@ -6,7 +6,7 @@ import (
 )
 
 type Storage interface {
-	CreateAccount(*account.Account) error
+	CreateAccount(*account.Account) (int, error)
 	DeleteAccount(int) error
 	UpdateAccount(*account.Account) error
 	GetAccounts() ([]*account.Account, error)

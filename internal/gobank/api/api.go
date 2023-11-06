@@ -139,7 +139,7 @@ func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) 
 		return err
 	}
 
-	if err := s.store.CreateAccount(a); err != nil {
+	if _, err := s.store.CreateAccount(a); err != nil {
 		return err
 	}
 

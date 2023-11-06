@@ -1,24 +1,22 @@
 package storage
 
 import (
-	"database/sql"
-	"fmt"
 	"github.com/vortexfluc/gobank/internal/gobank/account"
+	"github.com/vortexfluc/gobank/internal/gobank/storage/entity"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type PostgresStore struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
 func NewPostgresStore() (*PostgresStore, error) {
-	connStr := "user=postgres dbname=postgres password=gobank sslmode=disable"
-	db, err := sql.Open("postgres", connStr)
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN: "host=localhost user=postgres password=gobank dbname=postgres port=5432 sslmode=disable TimeZone=Europe/Moscow",
+	}), &gorm.Config{})
 
 	if err != nil {
-		return nil, err
-	}
-
-	if err := db.Ping(); err != nil {
 		return nil, err
 	}
 
@@ -28,46 +26,11 @@ func NewPostgresStore() (*PostgresStore, error) {
 }
 
 func (s *PostgresStore) Init() error {
-	return s.createAccountTable()
+	return s.db.AutoMigrate(&entity.Account{})
 }
 
-func (s *PostgresStore) createAccountTable() error {
-	query := `CREATE TABLE IF NOT EXISTS account (
-    id SERIAL PRIMARY KEY,
-    first_name VARCHAR(255),
-    last_name VARCHAR(255),
-    number SERIAL,
-    balance SERIAL,
-    encrypted_password VARCHAR(255),
-    created_at TIMESTAMP
-)`
-
-	_, err := s.db.Exec(query)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *PostgresStore) CreateAccount(acc *account.Account) error {
-	query := `INSERT INTO account
-	(first_name, last_name, number, balance, encrypted_password, created_at)
-	VALUES
-    ($1, $2, $3, $4, $5, $6)`
-
-	_, err := s.db.Query(
-		query,
-		acc.FirstName,
-		acc.LastName,
-		acc.Number,
-		acc.Balance,
-		acc.EncryptedPassword,
-		acc.CreatedAt)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (s *PostgresStore) CreateAccount(acc *account.Account) (int, error) {
+	return acc.ID, s.db.Create(acc).Error
 }
 
 func (s *PostgresStore) UpdateAccount(acc *account.Account) error {
@@ -75,68 +38,43 @@ func (s *PostgresStore) UpdateAccount(acc *account.Account) error {
 }
 
 func (s *PostgresStore) DeleteAccount(id int) error {
-	_, err := s.db.Query("DELETE FROM account WHERE id = $1", id)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.db.Delete(entity.Account{}, id).Error
 }
 
 func (s *PostgresStore) GetAccountByNumber(number int64) (*account.Account, error) {
-	rows, err := s.db.Query("SELECT * FROM account WHERE number = $1", number)
-	if err != nil {
-		return nil, err
-	}
-
-	for rows.Next() {
-		return scanIntoAccount(rows)
-	}
-
-	return nil, fmt.Errorf("account with number [%d] not found", number)
+	var acEntity entity.Account
+	err := s.db.First(&acEntity, "number = ?", number).Error
+	return mapToModel(&acEntity), err
 }
 
 func (s *PostgresStore) GetAccountById(id int) (*account.Account, error) {
-	rows, err := s.db.Query("SELECT * FROM account WHERE id = $1", id)
-	if err != nil {
-		return nil, err
-	}
-
-	for rows.Next() {
-		return scanIntoAccount(rows)
-	}
-
-	return nil, fmt.Errorf("account %d not found", id)
+	var acEntity entity.Account
+	err := s.db.First(&acEntity, id).Error
+	return mapToModel(&acEntity), err
 }
 
 func (s *PostgresStore) GetAccounts() ([]*account.Account, error) {
-	rows, err := s.db.Query("SELECT * FROM account")
+	var accounts []*entity.Account
+	err := s.db.Find(&accounts).Error
 	if err != nil {
 		return nil, err
 	}
 
-	accounts := make([]*account.Account, 0)
-	for rows.Next() {
-		account, err := scanIntoAccount(rows)
-		if err != nil {
-			return nil, err
-		}
-
-		accounts = append(accounts, account)
+	modelAc := make([]*account.Account, 0)
+	for _, e := range accounts {
+		modelAc = append(modelAc, mapToModel(e))
 	}
-	return accounts, nil
+	return modelAc, nil
 }
 
-func scanIntoAccount(rows *sql.Rows) (*account.Account, error) {
-	account := new(account.Account)
-	err := rows.Scan(
-		&account.ID,
-		&account.FirstName,
-		&account.LastName,
-		&account.Number,
-		&account.Balance,
-		&account.EncryptedPassword,
-		&account.CreatedAt)
-
-	return account, err
+func mapToModel(entity *entity.Account) *account.Account {
+	return &account.Account{
+		ID:                entity.ID,
+		FirstName:         entity.FirstName,
+		LastName:          entity.LastName,
+		Number:            entity.Number,
+		EncryptedPassword: entity.EncryptedPassword,
+		Balance:           entity.Balance,
+		CreatedAt:         entity.CreatedAt,
+	}
 }
