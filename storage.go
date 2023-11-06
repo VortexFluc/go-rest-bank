@@ -12,6 +12,7 @@ type Storage interface {
 	UpdateAccount(*Account) error
 	GetAccounts() ([]*Account, error)
 	GetAccountById(int) (*Account, error)
+	GetAccountByNumber(int) (*Account, error)
 }
 
 type PostgresStore struct {
@@ -61,7 +62,8 @@ func (s *PostgresStore) CreateAccount(acc *Account) error {
 	(first_name, last_name, number, balance, created_at)
 	VALUES
     ($1, $2, $3, $4, $5)`
-	resp, err := s.db.Query(
+
+	_, err := s.db.Query(
 		query,
 		acc.FirstName,
 		acc.LastName,
@@ -72,7 +74,6 @@ func (s *PostgresStore) CreateAccount(acc *Account) error {
 		return err
 	}
 
-	fmt.Printf("%v\n", resp)
 	return nil
 }
 
@@ -87,6 +88,19 @@ func (s *PostgresStore) DeleteAccount(id int) error {
 	}
 
 	return nil
+}
+
+func (s *PostgresStore) GetAccountByNumber(number int) (*Account, error) {
+	rows, err := s.db.Query("SELECT * FROM account WHERE number = $1", number)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		return scanIntoAccount(rows)
+	}
+
+	return nil, fmt.Errorf("account with number [%d] not found", number)
 }
 
 func (s *PostgresStore) GetAccountById(id int) (*Account, error) {
