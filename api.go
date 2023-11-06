@@ -26,6 +26,7 @@ func (s *APIServer) Run() error {
 
 	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleAccount))
 	router.HandleFunc("/account/{id}", makeHTTPHandleFunc(s.handleAccountId))
+	router.HandleFunc("/transfer", makeHTTPHandleFunc(s.handleTransfer))
 
 	log.Println("JSON API server running on port: ", s.listenAddr)
 
@@ -41,7 +42,6 @@ func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request) error 
 	if r.Method == "GET" {
 		return s.handleGetAccount(w, r)
 	}
-
 	if r.Method == "POST" {
 		return s.handleCreateAccount(w, r)
 	}
@@ -53,7 +53,6 @@ func (s *APIServer) handleAccountId(w http.ResponseWriter, r *http.Request) erro
 	if r.Method == "GET" {
 		return s.handleGetAccountById(w, r)
 	}
-
 	if r.Method == "DELETE" {
 		return s.handleDeleteAccount(w, r)
 	}
@@ -112,7 +111,13 @@ func (s *APIServer) handleDeleteAccount(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *APIServer) handleTransfer(w http.ResponseWriter, r *http.Request) error {
-	return nil
+	transferReq := new(TransferRequest)
+	if err := json.NewDecoder(r.Body).Decode(transferReq); err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	return WriteJSON(w, http.StatusOK, transferReq)
 }
 
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
