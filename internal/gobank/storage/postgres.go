@@ -34,11 +34,17 @@ func (s *PostgresStore) CreateAccount(acc *account.Account) (int, error) {
 }
 
 func (s *PostgresStore) UpdateAccount(acc *account.Account) error {
+	e := mapToEntity(acc)
+	err := s.db.Save(&e).Error
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (s *PostgresStore) DeleteAccount(id int) error {
-	return s.db.Delete(entity.Account{}, id).Error
+	return s.db.Delete(&entity.Account{}, id).Error
 }
 
 func (s *PostgresStore) GetAccountByNumber(number int64) (*account.Account, error) {
@@ -76,5 +82,17 @@ func mapToModel(entity *entity.Account) *account.Account {
 		EncryptedPassword: entity.EncryptedPassword,
 		Balance:           entity.Balance,
 		CreatedAt:         entity.CreatedAt,
+	}
+}
+
+func mapToEntity(model *account.Account) *entity.Account {
+	return &entity.Account{
+		ID:                model.ID,
+		FirstName:         model.FirstName,
+		LastName:          model.LastName,
+		Number:            model.Number,
+		EncryptedPassword: model.EncryptedPassword,
+		Balance:           model.Balance,
+		Model:             gorm.Model{CreatedAt: model.CreatedAt},
 	}
 }

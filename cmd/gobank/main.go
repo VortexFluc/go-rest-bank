@@ -66,6 +66,7 @@ func main() {
 
 	colorer := color.New()
 	colorer.Printf(banner, colorer.Blue("VortexFluc"))
+
 	server := api.NewAPIServer(":8008", store)
 	runErr := server.Run()
 	if runErr != nil {

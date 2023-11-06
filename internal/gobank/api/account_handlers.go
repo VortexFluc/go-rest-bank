@@ -24,7 +24,7 @@ func (s *Server) handleGetAccount(c echo.Context) error {
 }
 
 func (s *Server) handleGetAccountById(c echo.Context) error {
-	id, err := strconv.Atoi(c.QueryParam("id"))
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func (s *Server) handleCreateAccount(c echo.Context) error {
 }
 
 func (s *Server) handleDeleteAccount(c echo.Context) error {
-	id, err := strconv.Atoi(c.QueryParam("id"))
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -68,8 +68,37 @@ func (s *Server) handleDeleteAccount(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]int{"deleted": id})
 }
 
+func (s *Server) handleUpdateAccount(c echo.Context) error {
+	var req request.UpdateAccountRequest
+
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return err
+	}
+
+	acc, err := s.store.GetAccountById(id)
+	if err != nil {
+		return err
+	}
+
+	acc.FirstName = req.FirstName
+	acc.LastName = req.LastName
+
+	err = s.store.UpdateAccount(acc)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *Server) handleTransfer(c echo.Context) error {
 	var transferReq request.TransferRequest
+
 	if err := c.Bind(&transferReq); err != nil {
 		return err
 	}

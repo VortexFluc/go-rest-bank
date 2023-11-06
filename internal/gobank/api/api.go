@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/vortexfluc/gobank/internal/gobank/storage"
 )
 
@@ -19,6 +20,7 @@ func NewAPIServer(listenAddr string, store storage.Storage) *Server {
 
 func (s *Server) Run() error {
 	e := echo.New()
+	e.Use(middleware.Logger())
 	e.HideBanner = true
 	s.initAccountEndpoints(e)
 	s.initLoginEndpoints(e)
@@ -32,7 +34,8 @@ func (s *Server) initAccountEndpoints(e *echo.Echo) {
 	e.GET("/account/:id", s.handleGetAccountById)
 	e.POST("/account", s.handleCreateAccount)
 	e.POST("/account/:id/transfer", s.handleTransfer)
-	e.DELETE("/account", s.handleDeleteAccount)
+	e.PUT("/account/:id", s.handleUpdateAccount)
+	e.DELETE("/account/:id", s.handleDeleteAccount)
 }
 
 func (s *Server) initLoginEndpoints(e *echo.Echo) {
