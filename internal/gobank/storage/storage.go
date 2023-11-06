@@ -2,14 +2,14 @@ package storage
 
 import (
 	_ "github.com/lib/pq"
-	"github.com/vortexfluc/gobank/internal/gobank/types"
+	"github.com/vortexfluc/gobank/internal/gobank/account"
 )
 
 type Storage interface {
-	CreateAccount(*types.Account) error
+	CreateAccount(*account.Account) error
 	DeleteAccount(int) error
-	UpdateAccount(*types.Account) error
-	GetAccounts() ([]*types.Account, error)
-	GetAccountById(int) (*types.Account, error)
-	GetAccountByNumber(int64) (*types.Account, error)
+	UpdateAccount(*account.Account) error
+	GetAccounts() ([]*account.Account, error)
+	GetAccountById(int) (*account.Account, error)
+	GetAccountByNumber(int64) (*account.Account, error)
 }

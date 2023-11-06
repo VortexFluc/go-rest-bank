@@ -3,14 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/vortexfluc/gobank/internal/gobank/account"
 	"github.com/vortexfluc/gobank/internal/gobank/api"
 	"github.com/vortexfluc/gobank/internal/gobank/storage"
-	"github.com/vortexfluc/gobank/internal/gobank/types"
 	"log"
 )
 
-func seedAccount(store storage.Storage, fname, lname, pw string) *types.Account {
-	acc, err := types.NewAccount(fname, lname, pw)
+func seedAccount(store storage.Storage, fname, lname, pw string) *account.Account {
+	acc, err := account.NewAccount(fname, lname, pw)
 	if err != nil {
 		log.Fatal(err)
 	}
